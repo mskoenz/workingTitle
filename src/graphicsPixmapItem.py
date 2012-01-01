@@ -1,20 +1,30 @@
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+try:
+    #~ from PySide1.QtCore import *
+    #~ from PySide1.QtGui import *
+    from PySide.QtCore import *
+    from PySide.QtGui import *
+except ImportError:
+    try:
+        from PyQt4.QtCore import *
+        from PyQt4.QtGui import *
+    except ImportError:
+        print("Error: no PySide or PyQt4 Module")
+        
 import math
 
 class CustomItem(QGraphicsPixmapItem):
     def __init__(self, name, parent = None):
         QGraphicsPixmapItem.__init__(self)
-        self.setPixmap(QPixmap(QString("%1.png").arg(name)).scaled(68,68, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
+        self.setPixmap(QPixmap(name+".png").scaled(68,68, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
         self.name = name
         self.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsMovable)
         self.setTransformationMode(Qt.SmoothTransformation)        
     
     def paint(self, painter, option, widget):
         if(self.isSelected() == True):
-            self.setPixmap(QPixmap(QString("%1M.png").arg(self.name)))
+            self.setPixmap(QPixmap(self.name+"M.png"))
         else:
-            self.setPixmap(QPixmap(QString("%1.png").arg(self.name)))
+            self.setPixmap(QPixmap(self.name+".png"))
             
         option.state &= ~QStyle.State_Selected
         QGraphicsPixmapItem.paint(self, painter, option, widget)
