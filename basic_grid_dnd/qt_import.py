@@ -2,7 +2,7 @@
 # -*- coding: cp1252 -*-
 #
 # Author:  Mario S. Könz <mskoenz@gmx.net>
-# Date:    16.01.2012 17:36:09 CET
+# Date:    16.01.2012 17:35:43 CET
 # File:    qt_import.py
 
 try:
@@ -16,4 +16,3 @@ except ImportError:
         print("PyQt4 loaded")
     except ImportError:
         print("Error: no PySide or PyQt4 Module")
-

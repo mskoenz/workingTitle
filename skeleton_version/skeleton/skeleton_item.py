@@ -133,17 +133,3 @@ class item:
         res += self.img_path + "\n";
         res += (self.marked_path) + "\n";
         return res;
-    
-#~ it1 = item("gho");
-#~ it2 = item("tho");
-#~ it3 = item("scv");
-#~ 
-#~ l = resource_line(100);
-#~ 
-#~ l.add_item(it1, 5, 10);
-#~ l.add_item(it2, 50, 10);
-#~ l.add_item(it3, 80, 10);
-#~ 
-#~ l.move_item(it1, 0);
-#~ 
-#~ print(l);
