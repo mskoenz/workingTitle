@@ -14,7 +14,9 @@
 #   move_item_to(item, x);
 #   move_item_by(item, dx);
 #   __str__();
-#   paint(parent, color);
+#   paint(parent, color, area);
+#   get_area_to(x);
+#   fet_x_from_area(area);
 import copy
 import math
 from qt_import import *
@@ -123,22 +125,52 @@ class resource_line:
                 it[k], it[i] = it[i], it[k];
                 i-=1;
                 k-=1;
-    def paint(self, parent, color, of_x = 0, of_y = 0):
+    
+    def paint(self, parent, color, area):
         painter = QPainter();
         painter.begin(parent);
         painter.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing);
-        pen = QPen(QColor(color));
+        pen = QPen(QColor(color)); #color doesn't matter
         pen.setJoinStyle(Qt.RoundJoin);
         pen.setCapStyle(Qt.RoundCap);
         pen.setWidth(2);
-        painter.setPen(QPen(pen));
-        painter.drawPolyline( QPolygon( self.get_points( of_x = of_x, of_y = -150+of_y, sc_y = -1) ) );
+        painter.setBrush(QBrush(QColor("red")));
+        painter.setPen(pen);
+
+        #list for polygon
+        p = self.points;
+        poly = [];
+        end_x = self.get_x_from_area(area);
+        #~ print(end_x);
+        
+        for i in range(1,len(self.items)+1):
+            if self.get_area_to(p[2*i].x()) < area and 2*i != len(p)-1:
+                poly.append(p[2*i]);
+                poly.append(p[2*i+1]);
+            else:
+                poly.append(QPoint(end_x, p[2*i].y()));
+                poly.append(QPoint(end_x, 0));
+                break;
+        poly2 = copy.deepcopy(poly);
+        self.offset(poly2, 0, -150);
+        self.scale(poly2, 1, -1);
+        
+        pen.setColor("red");
+        painter.setPen(pen);
+        painter.drawPolygon( QPolygon( poly2 ));
+        
+        pen.setColor(color);
+        painter.setPen(pen);
+        painter.drawPolyline( QPolygon( self.get_points(of_y = -150, sc_y = -1) ) );
+        
+        
+        #end poly
         painter.end();
     
     def get_area_to(self, x_in):
         area = 0;
         old_x = 0;
-        p = self.points
+        p = self.points;
         for i in range(len(self.items)):
             if p[2*i+2].x() < x_in:
                 area += (p[2*i+2].x() - old_x)*p[2*i+1].y();
@@ -147,6 +179,20 @@ class resource_line:
                 break;
             old_x = p[2*i+2].x();
         return area;
+    
+    def get_x_from_area(self, area):
+        p = self.points;
+        old_x = 0;
+        for i in range(len(self.items)):
+            next_area = (p[2*i+2].x()-old_x)*p[2*i+1].y();
+            #~ print(i," next_area: ",next_area, "old_x: ", old_x, "y: ", p[2*i+1].y(),"x_new: ", p[2*i+2].x());
+            if next_area < area:
+                area -= next_area;
+            else:
+                return old_x + area/p[2*i+1].y();
+            old_x = p[2*i+2].x();
+        return 0;
+    
     def __str__(self):
         res = "";
         for i in range(1,len(self.items)):
