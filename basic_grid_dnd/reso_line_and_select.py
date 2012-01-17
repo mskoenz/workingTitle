@@ -29,6 +29,11 @@ class Example(QWidget):
         self.objects[1].setGeometry(100,20,60,60);
         self.objects[2].setGeometry(150,20,20,20);
         
+        
+        self.reso_list = resource_line(2000);
+        for item in self.objects:
+            self.reso_list.add_item(item, item.pos().x(), item.size().height());
+        
         self.rubber = SRubberBand(self);
         self.selection = selection_manager();
         self.shiftPressed = False;
@@ -45,7 +50,10 @@ class Example(QWidget):
     def move_selected_to(self, item, pos):
         self.selection.happend = True;
         for it in self.selection:
-            it.move(map_to_grid(it.pos() + pos, 10));
+            loc = map_to_grid(it.pos()+pos, 10);
+            it.move(loc);
+            self.reso_list.move_item_to(it, loc.x());
+        self.repaint();
             
     def mousePressEvent(self, e):
         self.rubber.start(e);
@@ -61,7 +69,9 @@ class Example(QWidget):
             self.selection.select_list(sel);
         
         self.rubber.set_to_zero();
-
+        
+    def paintEvent(self, event):
+        self.reso_list.paint(self);
 #=======================================================================================================================
 def main():
     app = QApplication(sys.argv);
