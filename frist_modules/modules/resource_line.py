@@ -155,11 +155,11 @@ class resource_line:
         self.offset(poly2, 0, -150);
         self.scale(poly2, 1, -1);
         
-        pen.setColor("red");
+        pen.setColor(QColor("red"));
         painter.setPen(pen);
         painter.drawPolygon( QPolygon( poly2 ));
         
-        pen.setColor(color);
+        pen.setColor(QColor(color));
         painter.setPen(pen);
         painter.drawPolyline( QPolygon( self.get_points(of_y = -150, sc_y = -1) ) );
         

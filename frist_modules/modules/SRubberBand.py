@@ -10,7 +10,7 @@ from qt_import import *
 
 class SRubberBand(QRubberBand):
     def __init__(self, parent = None):
-        super().__init__(QRubberBand.Rectangle, parent);
+        super(SRubberBand, self).__init__(QRubberBand.Rectangle, parent);
         self.origin = QPoint(0, 0);
     
     def start(self, e):

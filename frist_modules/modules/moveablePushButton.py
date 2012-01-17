@@ -14,7 +14,7 @@ class moveablePushButton(QPushButton):
     #                       -bool shiftPressed
     
     def __init__(self, title, parent):
-        super().__init__(title, parent);
+        super(moveablePushButton, self).__init__(title, parent);
         self.parent = parent;
         self.setCheckable(True);
         self.setFocusPolicy(Qt.NoFocus);
