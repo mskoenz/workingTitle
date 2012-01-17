@@ -26,18 +26,19 @@ class Button(QPushButton):
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             #~ print(">click start");
-            if self.parent.keydown == True:
+            if self.parent.shiftPressed == True:
                 self.parent.selection.toggle_item_add(self);
             else:
                 self.parent.selection.toggle_item(self);
             #~ print(">click end");
         if e.button() == Qt.RightButton:
             if not self.parent.selection.is_on(self):
-                if self.parent.keydown == True :
+                if self.parent.shiftPressed == True :
                     self.parent.selection.select_item_add(self);
                 else:
                     self.parent.selection.select_item(self);
-            
+    def mouseReleaseEvent(self, e): #is neccessary bc otherwise Example.mouseReleaseButton is called
+        pass;
 #=======================================================================================================================
 def map_to_grid(point, grid_size):
     x = int(point.x()/grid_size)*grid_size;
@@ -76,7 +77,6 @@ class SRubberBand(QRubberBand):
 #=======================================================================================================================
 class selection_manager(list):
     def __init__(self):
-        self.happend = False;
         self = [];
     
     def is_on(self, item):
@@ -85,7 +85,6 @@ class selection_manager(list):
         return False;
     
     def select_item_add(self, item):
-        self.happend = True;
         if item not in self:
             item.setChecked(True);
             self.append(item);
@@ -95,7 +94,6 @@ class selection_manager(list):
         self.select_item_add(item);
         
     def deselect_item_add(self, item):
-        self.happend = True;
         if item in self:
             item.setChecked(False);
             self.remove(item);
@@ -143,15 +141,15 @@ class Example(QWidget):
         
         self.rubber = SRubberBand(self);
         self.selection = selection_manager();
-        self.keydown = False;
-
+        self.shiftPressed = False;
+        
     def keyPressEvent(self, e):
         if e.isAutoRepeat() == False and e.key() == Qt.Key_Shift:
-            self.keydown = True;
+            self.shiftPressed = True;
             self.setWindowTitle("shift pressed");
     def keyReleaseEvent(self, e):
         if e.isAutoRepeat() == False and e.key() == Qt.Key_Shift:
-            self.keydown = False;
+            self.shiftPressed = False;
             self.setWindowTitle("shift not pressed");
     
     def move_selected_to(self, item, pos):
@@ -167,12 +165,11 @@ class Example(QWidget):
         
     def mouseReleaseEvent(self, e):
         sel = self.rubber.get_selection(self.objects, e);
-        if self.keydown and not self.rubber.empty():
+        if self.shiftPressed and not self.rubber.empty():
             self.selection.select_list_add(sel);
-        if not self.keydown and not self.selection.happend:
+        if not self.shiftPressed:
             self.selection.select_list(sel);
         
-        self.selection.happend = False;
         self.rubber.set_to_zero();
 
 #=======================================================================================================================
