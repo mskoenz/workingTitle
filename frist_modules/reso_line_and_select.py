@@ -30,9 +30,12 @@ class Example(QWidget):
         self.objects[2].setGeometry(150,20,20,20);
         
         
-        self.reso_list = resource_line(2000);
-        for item in self.objects:
+        self.reso_list = resource_line(-100, 2000);
+        self.reso_list2 = resource_line(-100, 2000);
+        for item in self.objects[:-1]:
             self.reso_list.add_item(item, item.pos().x(), item.size().height());
+        
+        self.reso_list2.add_item(self.objects[2], self.objects[2].pos().x(), 80);
         
         self.rubber = SRubberBand(self);
         self.selection = selection_manager();
@@ -52,7 +55,10 @@ class Example(QWidget):
         for it in self.selection:
             loc = map_to_grid(it.pos()+pos, 10);
             it.move(loc);
-            self.reso_list.move_item_to(it, loc.x());
+            if it in self.reso_list.items:
+                self.reso_list.move_item_to(it, loc.x());
+            if it in self.reso_list2.items:
+                self.reso_list2.move_item_to(it, loc.x());
         self.repaint();
             
     def mousePressEvent(self, e):
@@ -71,11 +77,13 @@ class Example(QWidget):
         self.rubber.set_to_zero();
         
     def paintEvent(self, event):
-        self.reso_list.paint(self);
+        self.reso_list2.paint(self, "Black");
+        self.reso_list.paint(self, "Green");
+        self.setWindowTitle(str((self.reso_list2.get_area_to(1000)-self.reso_list.get_area_to(1000))/400));
 #=======================================================================================================================
 def main():
     app = QApplication(sys.argv);
-    #~ app.setStyle("macintosh")
+    app.setStyle("plastique")
     ex = Example();
     ex.show();
     app.exec_();

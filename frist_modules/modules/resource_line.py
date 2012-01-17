@@ -6,7 +6,7 @@
 # File:    resource_line.py
 #
 #class resource_line:
-#   __init__(width);
+#   __init__(start, end);
 #   offset(vec, offset_x, offset_y);
 #   scale(vec, scale_x, scale_y);
 #   add_item(item, x_pos, heigth);
@@ -14,7 +14,7 @@
 #   move_item_to(item, x);
 #   move_item_by(item, dx);
 #   __str__();
-#   paint(parent);
+#   paint(parent, color);
 import copy
 import math
 from qt_import import *
@@ -29,9 +29,9 @@ def addY(point, dy):
     point.setY(point.y()+dy);
 
 class resource_line:
-    def __init__(self, width):
+    def __init__(self, start, end):
         #invariant: always sorted in x-direction
-        self.points = [QPoint(0,0), QPoint(0,0), QPoint(width, 0)];
+        self.points = [QPoint(start,0), QPoint(start,0), QPoint(end, 0)];
         self.items = ["start"];
     
     def offset(self, vec, x_offset, y_offset):
@@ -123,19 +123,30 @@ class resource_line:
                 it[k], it[i] = it[i], it[k];
                 i-=1;
                 k-=1;
-    def paint(self, parent):
+    def paint(self, parent, color, of_x = 0, of_y = 0):
         painter = QPainter();
         painter.begin(parent);
         painter.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing);
-        pen = QPen(QColor("black"));
+        pen = QPen(QColor(color));
         pen.setJoinStyle(Qt.RoundJoin);
         pen.setCapStyle(Qt.RoundCap);
         pen.setWidth(2);
         painter.setPen(QPen(pen));
-        painter.drawPolyline( QPolygon( self.get_points( of_y = -150, sc_y = -1) ) );
+        painter.drawPolyline( QPolygon( self.get_points( of_x = of_x, of_y = -150+of_y, sc_y = -1) ) );
         painter.end();
     
-    
+    def get_area_to(self, x_in):
+        area = 0;
+        old_x = 0;
+        p = self.points
+        for i in range(len(self.items)):
+            if p[2*i+2].x() < x_in:
+                area += (p[2*i+2].x() - old_x)*p[2*i+1].y();
+            else:
+                area += (x_in - old_x)*(p[2*i+1].y());
+                break;
+            old_x = p[2*i+2].x();
+        return area;
     def __str__(self):
         res = "";
         for i in range(1,len(self.items)):
