@@ -16,7 +16,7 @@ class SPen(QPen):
 
 class SGradient(QLinearGradient):
     def __init__(self, p1, col1, p2, col2):
-        super(SGradient, self).__init__(p1, p2);
+        super(SGradient, self).__init__(p1.x(), p1.y(), p2.x(), p2.y()); #so complicated bc of PyQt4
         self.setSpread(QGradient.PadSpread);
         self.setColorAt(0, QColor(col1));
         self.setColorAt(1, QColor(col2));
