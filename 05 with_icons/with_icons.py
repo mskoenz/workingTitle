@@ -25,23 +25,26 @@ class Example(QWidget):
         pal.setColor(QPalette.Background, QColor("black"));
         self.setPalette(pal);
         
-        self.objects = [iconButton(self, "scv", 40, 50)];
-        self.objects.append(iconButton(self, "scv", 40, 50));
-        self.objects.append(iconButton(self, "scv", 40, 50));
-        self.objects.append(iconButton(self, "mul", 40, 200));
+        self.objects = [iconButton(self, "scv", 17, 50/17)];
+        self.objects.append(iconButton(self, "scv", 17, 50/17));
+        self.objects.append(iconButton(self, "scv", 17, 50/17));
         self.objects[0].move( 10,250);
         self.objects[1].move(110,250);
         self.objects[2].move(210,250);
-        self.objects[3].move(310,250);
         
         
         self.reso_list = resource_line(self, -100, 2000);
         for item in self.objects:
-            self.reso_list.add_item(item, item.pos().x()+item.size().width(), item.size().height());
+            self.reso_list.add_item(item, item.pos().x(), 2/3, item.size().width());
+            
+        self.objects.append(iconButton(self, "mul", 5, 4));
+        self.objects[3].move(310,250);
+        self.reso_list.add_item(self.objects[3], self.objects[3].pos().x(), 3);
+        self.reso_list.add_item(self.objects[3], self.objects[3].pos().x(), -3, 180);
         
-        self.objects.append(iconButton(self, "spm", 80, 50));
-        self.objects.append(iconButton(self, "tho", 150, 100));
-        self.objects.append(iconButton(self, "cru", 200, 150));
+        self.objects.append(iconButton(self, "spm", 25, 50/25));
+        self.objects.append(iconButton(self, "stimP", 170, 200/170));
+        self.objects.append(iconButton(self, "spm", 25, 50/25));
         self.objects[4].move( 10,150);
         self.objects[5].move(110,150);
         self.objects[6].move(310,50);
@@ -50,13 +53,27 @@ class Example(QWidget):
         self.selection = selection_manager();
         self.shiftPressed = False;
         
-    def get_area(self):
+    def get_total_area(self):
+        return self.get_area_from_list(self.objects);
+    
+    def get_area_from_list(self, lis):
         area = 0;
-        for it in self.objects:
+        for it in lis:
             size = it.size();
             area += size.height()*size.width();
         return area;
-        
+    
+    def get_list_from_x(self, x):
+        return [it for it in self.objects if it.pos().x() <= x];
+    
+    def move_selected_to(self, item, pos):
+        for it in self.selection:
+            loc = map_to_grid(it.pos()+pos, 1);
+            it.move(loc);
+            if it in self.reso_list.items:
+                self.reso_list.move_item_to(it, loc.x());
+        self.repaint();
+    
     def keyPressEvent(self, e):
         if e.isAutoRepeat() == False and e.key() == Qt.Key_Shift:
             self.shiftPressed = True;
@@ -65,16 +82,6 @@ class Example(QWidget):
         if e.isAutoRepeat() == False and e.key() == Qt.Key_Shift:
             self.shiftPressed = False;
             self.setWindowTitle("shift not pressed");
-    
-    def move_selected_to(self, item, pos):
-        self.selection.happend = True;
-        for it in self.selection:
-            loc = map_to_grid(it.pos()+pos, 10);
-            loc2 = map_to_grid(it.pos()+pos+QPoint(it.size().width(), 0), 10);
-            it.move(loc);
-            if it in self.reso_list.items:
-                self.reso_list.move_item_to(it, loc2.x());
-        self.repaint();
             
     def mousePressEvent(self, e):
         self.rubber.start(e);
@@ -90,10 +97,13 @@ class Example(QWidget):
             self.selection.select_list(sel);
         
         self.rubber.set_to_zero();
+        self.repaint();
         
     def paintEvent(self, event):
-        self.reso_list.paint(self, self.get_area());
-    
+        if self.selection:
+            self.reso_list.paint(self, self.get_area_from_list(self.get_list_from_x(self.selection[0].pos().x())));
+        else:
+            self.reso_list.paint(self, self.get_total_area());
 #=======================================================================================================================
 def main():
     app = QApplication(sys.argv);
@@ -104,3 +114,4 @@ def main():
     
 if __name__ == '__main__':
     main();
+    

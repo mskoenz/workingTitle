@@ -8,18 +8,38 @@
 
 from .painter_helper import *
 
-#for the iconButton class:
-style_pen_width = 1;
+#=======================================================================================================================
+#for the iconButton class===============================================================================================
 
-style_icon_background_normal = ["green", "black"];
-style_icon_line_normal = ["black", "green"];
-style_icon_background_sel = ["lightgreen", "lime"];
-style_icon_line_sel = ["green", "lightgreen"];
+#renderoptions (QPainter.[Antialiasing, TextAntialiasing, SmoothPixmapTransform, HighQualityAntialiasing, NonCosmeticDefaultPen])
+style_icon_background_render = 0;
+#trafo options (Qt.[FastTransformation, SmoothTransformation]
+style_icon_pixmap_trafo = Qt.FastTransformation;
 
+#fineline around background
+style_pen_width = 1; 
+
+#radius of background edges
+style_rounded_radius = 5;
+
+#info for colors [start_gradient (top left), end_gradient (bottom right)]
+style_icon_background_normal =  ["green", "black"];
+style_icon_line_normal =        ["black", "green"];
+style_icon_background_sel =     ["lightgreen", "lime"];
+style_icon_line_sel =           ["green", "lightgreen"];
+
+#maximal pixmap size
 style_icon_max_pixmap_size = 68;
-style_icon_pixmap_smaller = 2;
 
-#for the resource_line class
+#margins between background and pixmap 
+style_icon_pixmap_smaller = 1;
+
+#scale factors of incoming height, width
+style_icon_scale_height = 20;
+style_icon_scale_width = 2;
+
+#=======================================================================================================================
+#for the resource_line class============================================================================================
 style_line_color = ["blue", "black"];
 style_area_color = ["red", "orange"];
 

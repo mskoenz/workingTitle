@@ -37,5 +37,6 @@ class moveablePushButton(QPushButton):
                     self.parent.selection.select_item_add(self);
                 else:
                     self.parent.selection.select_item(self);
+        self.parent.repaint();
     def mouseReleaseEvent(self, e): #is neccessary bc otherwise Example.mouseReleaseButton is called
         pass;
