@@ -12,7 +12,7 @@ from .painter_helper import *
 #for the iconButton class===============================================================================================
 
 #renderoptions (QPainter.[Antialiasing, TextAntialiasing, SmoothPixmapTransform, HighQualityAntialiasing, NonCosmeticDefaultPen])
-style_icon_background_render = 0;
+style_icon_background_render = QPainter.TextAntialiasing;
 #trafo options (Qt.[FastTransformation, SmoothTransformation]
 style_icon_pixmap_trafo = Qt.FastTransformation;
 
@@ -41,7 +41,7 @@ style_icon_scale_width = 2;
 #=======================================================================================================================
 #for the resource_line class============================================================================================
 style_line_color = ["blue", "black"];
-style_area_color = ["red", "orange"];
+style_area_color = ["lightblue", "blue"];
 
 style_x_offset = 0;
 style_y_offset = -400;

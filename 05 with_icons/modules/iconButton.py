@@ -55,7 +55,7 @@ class iconButton(moveablePushButton):
         img = QPixmap(self.img_path);
         minimum = min(self.size().height(), self.size().width()) - 2*style_icon_pixmap_smaller;
         if style_icon_max_pixmap_size > minimum:
-            img = img.scaled(minimum, minimum, transformeMode = style_icon_pixmap_trafo);
+            img = img.scaled(minimum, minimum, transformMode = style_icon_pixmap_trafo);
         
         #paint icon
         img_pos = QPoint(img.size().width(), img.size().height());

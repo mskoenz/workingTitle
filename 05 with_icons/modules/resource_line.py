@@ -61,12 +61,18 @@ class resource_line:
         self.points.insert(i, QPoint(x_pos + offset, ground));
         
         if item in self.items:
-            k = self.items.index(item); #first item contains all the information
-            print(self.pos[k].append(int(i/2)));
-            self.pos.insert(int(i/2), self.pos[k]);
+            k = self.items.index(item); #every item holds all index of its identities
+            self.pos[k].append(int(i/2)); #insert new index
+            self.pos.insert(int(i/2), self.pos[k]); #give the new one the list
         else:
             self.pos.insert(int(i/2), [int(i/2)]);
-            
+        
+        if len(self.items) > int(i/2): #if insert != append all following index must be incremented
+            for j in range(int(i/2)+1, len(self.pos)):
+                posi = self.pos[j];
+                k = posi.index(j-1);
+                posi[k] = j;
+        
         self.items.insert(int(i/2), item);
         self.x_offset.insert(int(i/2), offset);
         
@@ -127,8 +133,8 @@ class resource_line:
                     pos[k][jk] = i;
                     pos[i][ji] = k;
                     pos[k], pos[i] = pos[i], pos[k];
-                    it[k], it[i] = it[i], it[k];
                     off[k], off[i] = off[i], off[k];
+                    it[k], it[i] = it[i], it[k];
                     
                     i+=1;
                     k+=1;
@@ -158,8 +164,8 @@ class resource_line:
                     pos[k][jk] = i;
                     pos[i][ji] = k;
                     pos[k], pos[i] = pos[i], pos[k];
-                    it[k], it[i] = it[i], it[k];
                     off[k], off[i] = off[i], off[k];
+                    it[k], it[i] = it[i], it[k];
                     
                     i-=1;
                     k-=1;

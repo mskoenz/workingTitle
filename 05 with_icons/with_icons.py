@@ -25,33 +25,38 @@ class Example(QWidget):
         pal.setColor(QPalette.Background, QColor("black"));
         self.setPalette(pal);
         
-        self.objects = [iconButton(self, "scv", 17, 50/17)];
-        self.objects.append(iconButton(self, "scv", 17, 50/17));
-        self.objects.append(iconButton(self, "scv", 17, 50/17));
-        self.objects[0].move( 10,250);
-        self.objects[1].move(110,250);
-        self.objects[2].move(210,250);
+        self.objects = [iconButton(self, "scv", 17, 50/17.0)];
+        self.objects.append(iconButton(self, "scv", 17, 50/17.0));
+        self.objects.append(iconButton(self, "scv", 17, 50/17.0));
+        self.objects[0].move( 10,150);
+        self.objects[1].move(15, 200);
+        self.objects[2].move(20,250);
         
         
         self.reso_list = resource_line(self, -100, 2000);
+        self.reso_list2 = resource_line(self, -100, 2000);
+        
         for item in self.objects:
-            self.reso_list.add_item(item, item.pos().x(), 2/3, item.size().width());
+            self.reso_list.add_item(item, item.pos().x(), 2/3.0, item.size().width());
+            self.reso_list2.add_item(item, item.pos().x(), 2/3.0, item.size().width());
             
         self.objects.append(iconButton(self, "mul", 5, 4));
-        self.objects[3].move(310,250);
+        self.objects[3].move(5,300);
         self.reso_list.add_item(self.objects[3], self.objects[3].pos().x(), 3);
         self.reso_list.add_item(self.objects[3], self.objects[3].pos().x(), -3, 180);
         
-        self.objects.append(iconButton(self, "spm", 25, 50/25));
-        self.objects.append(iconButton(self, "stimP", 170, 200/170));
-        self.objects.append(iconButton(self, "spm", 25, 50/25));
-        self.objects[4].move( 10,150);
-        self.objects[5].move(110,150);
-        self.objects[6].move(310,50);
+        self.objects.append(iconButton(self, "spm", 25, 50/25.0));
+        self.objects.append(iconButton(self, "stimP", 170, 200/170.0));
+        self.objects.append(iconButton(self, "spm", 25, 50/25.0));
+        self.objects[4].move( 310,250);
+        self.objects[5].move(315,150);
+        self.objects[6].move(320,50);
+        
         
         self.rubber = SRubberBand(self);
         self.selection = selection_manager();
         self.shiftPressed = False;
+        
         
     def get_total_area(self):
         return self.get_area_from_list(self.objects);
@@ -68,10 +73,13 @@ class Example(QWidget):
     
     def move_selected_to(self, item, pos):
         for it in self.selection:
-            loc = map_to_grid(it.pos()+pos, 1);
+            loc = map_to_grid(it.pos()+pos, 5);
             it.move(loc);
             if it in self.reso_list.items:
                 self.reso_list.move_item_to(it, loc.x());
+            if it in self.reso_list2.items:
+                self.reso_list2.move_item_to(it, loc.x());
+                
         self.repaint();
     
     def keyPressEvent(self, e):
@@ -101,8 +109,10 @@ class Example(QWidget):
         
     def paintEvent(self, event):
         if self.selection:
+            self.reso_list2.paint(self, self.get_area_from_list(self.get_list_from_x(self.selection[0].pos().x())), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
             self.reso_list.paint(self, self.get_area_from_list(self.get_list_from_x(self.selection[0].pos().x())));
         else:
+            self.reso_list2.paint(self, self.get_total_area(), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
             self.reso_list.paint(self, self.get_total_area());
 #=======================================================================================================================
 def main():
