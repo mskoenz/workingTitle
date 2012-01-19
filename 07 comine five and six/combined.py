@@ -2,8 +2,9 @@
 # -*- coding: cp1252 -*-
 #
 # Author:  Mario S. Könz <mskoenz@gmx.net>
-# Date:    18.01.2012 10:04:28 CET
-# File:    with_icons.py
+# Date:    19.01.2012 21:14:39 CET
+# File:    combined.py
+
 
 import sys
 from qt_import import *
@@ -56,7 +57,7 @@ class Example(QWidget):
         
         #neccessary stuff
         
-        x = QCursor(QBitmap("empty.gif"), 0, 0);#nmm
+        x = QCursor(QBitmap("empty.gif"), QBitmap("empty.gif"),0, 0);#nmm
         self.setCursor(x);#nmm
         self.ok_pos = QPoint(0,0);#nmm
         self.setMouseTracking(True);#nmm
@@ -76,14 +77,14 @@ class Example(QWidget):
             area += size.height()*size.width();
         return area;
     
-    def get_list_from_x(self, x):
-        return [it for it in self.objects if it.pos().x() < x];
-    
+    def get_list_from_item(self, item):
+        return [it for it in self.objects if it.pos().x() < item.pos().x() or it == item];
+        
     def move_selected_to(self, item, pos, rel):#nmm
         old_pos = item.pos();
         new_pos = map_to_grid(pos-rel, 5);
         
-        if new_pos.x() <= int(self.reso_list.get_x_from_area(self.get_area_from_list(self.get_list_from_x(item.pos().x())))/5)*5:
+        if new_pos.x() <= int(self.reso_list.get_x_from_area(self.get_area_from_list(self.get_list_from_item(item)))/5)*5:
             self.ok_pos = self.mapToGlobal(old_pos + rel);
             QCursor.setPos(self.ok_pos);
         else:
@@ -97,16 +98,6 @@ class Example(QWidget):
                     self.reso_list.move_item_to(it, loc.x());
                 if it in self.reso_list2.items:
                     self.reso_list2.move_item_to(it, loc.x());
-        self.repaint();
-        
-        #~ for it in self.selection:
-            #~ loc = map_to_grid(it.pos()+pos, 5);
-            #~ it.move(loc);
-            #~ if it in self.reso_list.items:
-                #~ self.reso_list.move_item_to(it, loc.x());
-            #~ if it in self.reso_list2.items:
-                #~ self.reso_list2.move_item_to(it, loc.x());
-                
         self.repaint();
     
     def keyPressEvent(self, e):
@@ -138,8 +129,8 @@ class Example(QWidget):
         
     def paintEvent(self, event):
         if self.selection:
-            self.reso_list2.paint(self, self.get_area_from_list(self.get_list_from_x(self.selection[0].pos().x())), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
-            self.reso_list.paint(self, self.get_area_from_list(self.get_list_from_x(self.selection[0].pos().x())));
+            self.reso_list2.paint(self, self.get_area_from_list(self.get_list_from_item(self.selection[0])), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
+            self.reso_list.paint(self, self.get_area_from_list(self.get_list_from_item(self.selection[0])));
         else:
             self.reso_list2.paint(self, self.get_total_area(), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
             self.reso_list.paint(self, self.get_total_area());
