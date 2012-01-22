@@ -20,9 +20,6 @@ class selection_manager(list):
     def select_item_add(self, item):
         if item not in self:
             item.setChecked(True);  #item specifics
-            if item.mirror:#mir
-                item.mirror.setChecked(True);#mir
-                self.append(item.mirror);#mir
             self.append(item);
     
     def select_item(self, item):
@@ -32,9 +29,6 @@ class selection_manager(list):
     def deselect_item_add(self, item):
         if item in self:
             item.setChecked(False);  #item specifics
-            if item.mirror:#mir
-                item.mirror.setChecked(False);#mir
-                self.remove(item.mirror);#mir
             self.remove(item);
         
     def toggle_item_add(self, item):

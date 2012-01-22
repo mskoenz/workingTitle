@@ -65,7 +65,6 @@ class base_widget(QWidget):
             self.gas_objects.append(iconButton(self, name, sc2[name], "gps"));
             item2 = self.gas_objects[-1]
             item2.move(dx, dy + style_icon_scale_height*6);
-            item2.set_mirror(item);
             
         
         

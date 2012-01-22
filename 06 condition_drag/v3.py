@@ -48,12 +48,9 @@ class Button(QPushButton):
         self.setCheckable(True);
         self.setFocusPolicy(Qt.NoFocus);
         self.last_click = QPoint(0,0);
-        
-        self.lock = False;
+        self.setMouseTracking(True);
         
     def mouseMoveEvent(self, e):
-        if self.lock:
-            return None;
         if e.buttons() != Qt.RightButton or not self.isChecked():
             self.parent.ok_pos = QCursor.pos();
             return None;
@@ -79,7 +76,6 @@ class Button(QPushButton):
                     self.parent.multi_mark = self.parent.multi_mark.subtracted(QPolygon(tar));
                     
     def paintEvent(self, e):
-        print("button",self.text());
         QPushButton.paintEvent(self, e);
         
 class Example(QWidget):
@@ -94,7 +90,7 @@ class Example(QWidget):
         
         for i in range(70):
             self.objects.append(Button(str(i), self));
-            self.objects[-1].setGeometry((i%15)*19, int(i/15)*19, 20, 20);
+            self.objects[-1].setGeometry((i%10)*25, int(i/10)*25, 20, 20);
         
         self.multi_mark = QPolygon();
         self.printout = QPolygon();
@@ -161,7 +157,7 @@ class Example(QWidget):
             #create selection polygon
             self.poly = QPolygon(QRect(QPoint(top_l_x, top_l_y), QPoint(bottom_r_x, bottom_r_y)));
             #intersect with the outside
-            #~ self.printout = copy.deepcopy(self.poly); #perhaps for later
+            self.printout = copy.deepcopy(self.poly); #perhaps for later
             self.poly = self.poly.intersected(self.multi_mark);
             
             #the intersection can have mutliple isolated areas, witch are split here (returns list of closed point-list)
@@ -192,7 +188,10 @@ class Example(QWidget):
                 k += (len(sp)-1);
 
             #make unique
-            unique = {i:1 for i in correct}.keys();
+            unique = [];
+            for it in correct:
+                if it not in unique:
+                    unique.append(it);
             
             #find closest point to new_cursor
             target = QPoint(-1000, -1000); #shouldn't be near #convention
@@ -211,7 +210,7 @@ class Example(QWidget):
                 rel = old -it.pos();
                 it.move(goto - rel);
 
-        #~ self.repaint(); #only for style
+        self.repaint(); #only for style
     
     def mouseMoveEvent(self, e):
         self.ok_pos = QCursor.pos();
@@ -220,7 +219,15 @@ class Example(QWidget):
         self.deselect_all();
 
     def paintEvent(self, e):
-        print("main");
+        
+        pass;
+        painter = QPainter();
+        painter.begin(self);
+        
+        painter.drawPolygon(self.multi_mark);
+        painter.drawPolygon(self.printout);
+        
+        painter.end();
         
 def main():
     app = QApplication(sys.argv);
