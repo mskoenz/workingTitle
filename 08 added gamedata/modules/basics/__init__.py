@@ -11,4 +11,4 @@ from .resource_line import *
 from .iconButton import *
 
 
-__all__ = ["selection_manager", "SRubberBand", "resource_line", "iconButton", "paintCursor"];
+__all__ = ["selection_manager", "SRubberBand", "resource_line", "iconButton"];

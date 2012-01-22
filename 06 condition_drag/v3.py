@@ -2,87 +2,6 @@
 # -*- coding: cp1252 -*-
 #
 # Author:  Mario S. Könz <mskoenz@gmx.net>
-# Date:    18.01.2012 10:09:36 CET
-# File:    iconButton.py
-
-from os import path
-from ..qt_import import *
-from .moveablePushButton import *
-from .__style_options import *
-
-class iconButton(moveablePushButton):
-    def __init__(self, parent, img, data, mode = "mps"):
-        super(iconButton, self).__init__(img, parent);
-        self.img_path = path.join("modules", "game_module", "icons", img+".png");
-        
-        self.data = data;
-        self.parent = parent;
-        self.setFixedSize(QSize(style_icon_scale_width*self.data["time"], style_icon_scale_height*self.data[mode]));
-        self.setToolTip(data["name"]);
-        self.mirror = None;
-        
-    def set_mirror(self, mir):
-        self.mirror = mir;
-        mir.mirror = self;
-    
-    def paint(self):
-        checked = self.isChecked();
-        #choose colorset
-        if checked:
-            col_bg0 = QColor(style_icon_background_sel[0]);
-            col_bg1 = QColor(style_icon_background_sel[1]);
-            col_line0 = QColor(style_icon_line_sel[0]);
-            col_line1 = QColor(style_icon_line_sel[1]);
-        else:
-            col_bg0 = QColor(style_icon_background_normal[0]);
-            col_bg1 = QColor(style_icon_background_normal[1]);
-            col_line0 = QColor(style_icon_line_normal[0]);
-            col_line1 = QColor(style_icon_line_normal[1]);
-        
-        #init painter
-        pos = QPoint(0,0);
-        size = QPoint(self.size().width(), self.size().height()) - QPoint(2,2); #<- empiric, don't ask
-        painter = QPainter();
-        painter.begin(self);
-        painter.setRenderHints(style_icon_background_render);
-        
-        #init pen for background
-        pen_width = style_pen_width;
-        offset = QPoint(int(pen_width/2), int(pen_width/2));
-        pen = SPen("black", pen_width);
-        pen.setBrush(SGradient(pos, col_line0, pos+size, col_line1))
-        
-        #paint background
-        painter.setPen(pen);
-        painter.setBrush(SGradient(pos, col_bg0, pos+size, col_bg1));
-        painter.drawRoundedRect(QRect(pos+offset, pos+size-offset), style_rounded_radius, style_rounded_radius);
-        
-        #scale icon
-        img = QPixmap(self.img_path);
-        minimum = min(self.size().height(), self.size().width()) - 2*style_icon_pixmap_smaller;
-        if style_icon_max_pixmap_size > minimum:
-            img = img.scaled(minimum, minimum, transformMode = style_icon_pixmap_trafo);
-        
-        #paint icon
-        img_pos = QPoint(img.size().width(), img.size().height());
-        painter.drawPixmap((pos+size+QPoint(2,2)-img_pos)/2, img);
-        
-        #done :)
-        painter.end();
-
-    def paintEvent(self, e):
-        self.paint();
-        print("painted:",self.data["name"]);
-        
-        
-        
-        
-        
-        
-        #!/usr/bin/python3.2
-# -*- coding: cp1252 -*-
-#
-# Author:  Mario S. Könz <mskoenz@gmx.net>
 # Date:    19.01.2012 21:48:17 CET
 # File:    condition_drag.py
 
@@ -98,6 +17,29 @@ def QPointS(size):
 def dist(point):
     return math.sqrt(pow(point.x(), 2)+pow(point.y(), 2));
 
+def split_polygon(poly):
+    split = [];
+    temp = [];
+    start = [];
+    i = 0;
+    
+    while i < len(poly):
+        if poly[i] in start:
+            i+=1;
+            continue;
+        temp = [poly[i]];
+        start.append(poly[i]);
+        i += 1;
+        while poly[i] not in start:
+            temp.append(poly[i]);
+            i += 1;
+        temp.append(poly[i]);
+        split.append(temp);
+    
+    return split;
+    
+    
+
 class Button(QPushButton):
   
     def __init__(self, title, parent):
@@ -106,7 +48,6 @@ class Button(QPushButton):
         self.setCheckable(True);
         self.setFocusPolicy(Qt.NoFocus);
         self.last_click = QPoint(0,0);
-        self.setMouseTracking(True);
         
         self.lock = False;
         
@@ -138,6 +79,7 @@ class Button(QPushButton):
                     self.parent.multi_mark = self.parent.multi_mark.subtracted(QPolygon(tar));
                     
     def paintEvent(self, e):
+        print("button",self.text());
         QPushButton.paintEvent(self, e);
         
 class Example(QWidget):
@@ -193,7 +135,9 @@ class Example(QWidget):
         for it in self.selection:
             it.setChecked(False);
             self.selection = [];
+    
         
+    
     def move_selected_to(self, item, new_cursor, rel):
         
         old = item.pos();
@@ -202,7 +146,6 @@ class Example(QWidget):
         self.count += 1;
         
         if not self.multi_mark.containsPoint(new_cursor, Qt.OddEvenFill):
-            
             #get the direction for right ordering
             top_l_x = old_cursor.x();
             top_l_y = old_cursor.y();
@@ -217,49 +160,58 @@ class Example(QWidget):
             
             #create selection polygon
             self.poly = QPolygon(QRect(QPoint(top_l_x, top_l_y), QPoint(bottom_r_x, bottom_r_y)));
-
             #intersect with the outside
-            self.printout = copy.deepcopy(self.poly);
+            #~ self.printout = copy.deepcopy(self.poly); #perhaps for later
             self.poly = self.poly.intersected(self.multi_mark);
             
-            correct = []; # store possible target points
+            #the intersection can have mutliple isolated areas, witch are split here (returns list of closed point-list)
+            split = split_polygon(self.poly); 
             
-            for i in self.poly:
-                correct.append(i);
-            correct.pop(); #bc first = last
+            
+            correct = []
+            
+            # read all possible point in correct (s[:-1] bc start = endpoint)
+            for s in split:
+                for i in s[:-1]:
+                    correct.append(i);
             
             #bc of rect properties (see QRect doc) right and bottom line need decrementation
-            for i in range(len(correct)):
-                if self.poly[i-1].x() <= self.poly[i].x() and self.poly[i+1].y() > self.poly[i].y(): #point ---+
-                    correct[i].setX(correct[i].x()-1)                                                #         |
-                                                                                                     
-                if self.poly[i-1].y() <= self.poly[i].y() and self.poly[i+1].x() < self.poly[i].x(): #         |
-                    correct[i].setX(correct[i].x()-1)                                                #point ---+
-                    correct[i].setY(correct[i].y()-1)
-                                                                                                     #         |
-                if self.poly[i-1].x() >= self.poly[i].x() and self.poly[i+1].y() < self.poly[i].y(): #point is +---
-                    correct[i].setY(correct[i].y()-1)
-                    
+            # the = in <=, >= are neccesary bc start = enp-point
+            k = 0;
+            for sp in split:
+                for i in range(len(sp)-1):
+                    if sp[i-1].x() <= sp[i].x() and sp[i+1].y() > sp[i].y():  #point is ---+
+                        correct[k+i].setX(correct[k+i].x()-1)                 #            |
+                        
+                    if sp[i-1].y() <= sp[i].y() and sp[i+1].x() < sp[i].x():  #point is    | 
+                        correct[k+i].setX(correct[k+i].x()-1)                 #         ---+
+                        correct[k+i].setY(correct[k+i].y()-1)
+                                                                              #            |
+                    if sp[i-1].x() >= sp[i].x() and sp[i+1].y() < sp[i].y():  #point is    +---
+                        correct[k+i].setY(correct[k+i].y()-1)
+                k += (len(sp)-1);
+
             #make unique
             unique = {i:1 for i in correct}.keys();
             
-            #find closest target to new_cursor
-            target = QPoint(-1000, -1000); #shouldn't be near! #convention
+            #find closest point to new_cursor
+            target = QPoint(-1000, -1000); #shouldn't be near #convention
             for p in unique:
-                print(p);
                 if dist(new_cursor - target) > dist(new_cursor - p):
                     target = p;
 
             new_cursor = target;
-            goto = new_cursor - rel;
-            
-        if new_cursor != old_cursor:
+            goto = new_cursor - rel; #correct destination
+
+        if new_cursor != old_cursor: 
             self.ok_pos = self.mapToGlobal(new_cursor);
-            
+
+            #move everything
             for it in self.selection:
                 rel = old -it.pos();
                 it.move(goto - rel);
-        self.repaint();
+
+        #~ self.repaint(); #only for style
     
     def mouseMoveEvent(self, e):
         self.ok_pos = QCursor.pos();
@@ -268,15 +220,7 @@ class Example(QWidget):
         self.deselect_all();
 
     def paintEvent(self, e):
-        
-        pass;
-        painter = QPainter();
-        painter.begin(self);
-        
-        painter.drawPolygon(self.multi_mark);
-        painter.drawPolygon(self.printout);
-        
-        painter.end();
+        print("main");
         
 def main():
     app = QApplication(sys.argv);
@@ -286,4 +230,3 @@ def main():
 
 if __name__ == '__main__':
     main();
-

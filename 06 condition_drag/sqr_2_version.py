@@ -19,10 +19,10 @@ class Button(QPushButton):
         self.setFocusPolicy(Qt.NoFocus);
         #~ self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum);
         self.last_click = QPoint(0,0);
-        self.setMouseTracking(True);
+        #~ self.setMouseTracking(True);
         
     def mouseMoveEvent(self, e):
-        self.parent.repaint();
+        #~ self.parent.repaint();
         
         if e.buttons() != Qt.RightButton or not self.isChecked():
             self.parent.ok_pos = QCursor.pos();
@@ -39,18 +39,19 @@ class Button(QPushButton):
             self.parent.select_item(self);
         if e.buttons() == Qt.RightButton and self.isChecked():
             self.parent.restrict = [];
-            for it in [x for x in [self.parent.button1, self.parent.button2, self.parent.button3, self.parent.button4] if x not in self.parent.selection]:
+            for it in [x for x in self.parent.objects if x not in self.parent.selection]:
                 size = QPoint(it.rect().width(), it.rect().height());
                 rect = QRect(it.pos(), it.pos()+size - QPoint(2,2));
                 self.parent.restrict.append(rect);
     def paintEvent(self, e):
         QPushButton.paintEvent(self, e);
+        print("repaint", self.text());
         paintCursor(self, self.mapFromGlobal(self.parent.ok_pos));
         
-def map_to_grid(point, grid_size): #doesn't work in negatives!!
-    x = int(point.x()/grid_size)*grid_size;
-    y = int(point.y()/grid_size)*grid_size;
-    return QPoint(x, y);
+#~ def map_to_grid(point, grid_size): #doesn't work in negatives!!
+    #~ x = int(point.x()/grid_size)*grid_size;
+    #~ y = int(point.y()/grid_size)*grid_size;
+    #~ return QPoint(x, y);
 
 class Example(QWidget):
   
@@ -60,25 +61,21 @@ class Example(QWidget):
         self.setGeometry(300, 300, 300, 300);
         self.setAcceptDrops(True);
         
-        x = QCursor(QBitmap("empty.gif"), 0, 0);
-        print(x.hotSpot());
-        self.setCursor(x);
+        #~ x = QCursor(QBitmap("empty.gif"), 0, 0);
+        #~ print(x.hotSpot());
+        #~ self.setCursor(x);
         
         
-        self.button1 = Button('1', self);
-        self.button2 = Button('2', self);
-        self.button3 = Button('3', self);
-        self.button4 = Button('4', self);
-        self.button1.setGeometry(10,20,20,20);
-        self.button2.setGeometry(100,50,60,60);
-        self.button3.setGeometry(160,150,20,20);
-        self.button4.setGeometry(130,190,20,20);
+        self.objects = [];
         
+        for i in range(70):
+            self.objects.append(Button(str(i), self));
+            self.objects[-1].setGeometry((i%20)*20, i*10 - int(i/20)*100, 20, 20);
         
         
         self.restrict = []
         self.mark = [];
-        self.setMouseTracking(True);
+        #~ self.setMouseTracking(True);
         
         self.selection = [];
         self.ok_pos = QPoint(0,0);
@@ -129,13 +126,14 @@ class Example(QWidget):
                 for block in self.restrict:
                     if block.intersects(move):
                         check = False;
-                #~ for spec in spezliste[move]: <-- dict
-                    #~ if spez.intersects(move):
-                        #~ check = False;
+                #for spec in spezliste[move]: <-- dict
+                    #if spez.intersects(move):
+                        #check = False;
 
                         print(block.size() == move.size())
                         break;
         if not check:
+        #~ if False:
             pos = p;
             self.ok_pos = self.mapToGlobal(pos + rel);
             QCursor.setPos(self.ok_pos);
@@ -145,11 +143,11 @@ class Example(QWidget):
         for it in self.selection:
             rel = p -it.pos();
             it.move(pos - rel);
-        self.repaint();
+        #~ self.repaint();
             
     def mouseMoveEvent(self, e):
         self.ok_pos = QCursor.pos();
-        self.repaint();
+        #~ self.repaint();
     
     def mousePressEvent(self, e):
         self.deselect_all();
@@ -157,8 +155,9 @@ class Example(QWidget):
     def paintEvent(self, e):
         painter = QPainter();
         painter.begin(self);
-        for rec in self.restrict:
-            painter.drawRect(rec);
+        print("repainted main");
+        #~ for rec in self.restrict:
+            #~ painter.drawRect(rec);
         #~ painter.drawPolygon(self.mark);
         #~ painter.drawPolygon(self.restrict.intersected(self.mark));
         painter.end();
@@ -166,13 +165,14 @@ class Example(QWidget):
         
     def leaveEvent(self, e):
         self.ok_pos = QPoint(10000, 10000); #surely not on the screen
-        self.repaint();
+        #~ self.repaint();
         
 def paintCursor(self, pos):
-    painter = QPainter();
-    painter.begin(self);
-    painter.drawPixmap(pos, QPixmap("cursor_green.png"));
-    painter.end();
+    pass;
+    #~ painter = QPainter();
+    #~ painter.begin(self);
+    #~ painter.drawPixmap(pos, QPixmap("cursor_green.png"));
+    #~ painter.end();
     
 def main():
     app = QApplication(sys.argv);

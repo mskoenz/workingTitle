@@ -22,10 +22,8 @@ class moveablePushButton(QPushButton):
         self.setFocusPolicy(Qt.NoFocus);
         #for nice mouse (nmm)
         self.last_click = QPoint(0,0);
-        self.setMouseTracking(True);
         
     def mouseMoveEvent(self, e):
-        self.parent.repaint();#nmm
         if e.buttons() != Qt.RightButton or not self.isChecked():
             self.parent.ok_pos = QCursor.pos();
             return None;
@@ -46,16 +44,7 @@ class moveablePushButton(QPushButton):
                     self.parent.selection.select_item_add(self);
                 else:
                     self.parent.selection.select_item(self);
-        self.parent.repaint();
     
-    def paintEvent(self, e):#nmm
-        paintCursor(self, self.mapFromGlobal(self.parent.ok_pos));
-        
     def mouseReleaseEvent(self, e): #is neccessary bc otherwise Example.mouseReleaseButton is called
         pass;
         
-def paintCursor(self, pos):#nmm must be a free function
-    painter = QPainter();
-    painter.begin(self);
-    painter.drawPixmap(pos, QPixmap(path.join("modules", "basics", "cursors", style_paint_cursor_img)));
-    painter.end();

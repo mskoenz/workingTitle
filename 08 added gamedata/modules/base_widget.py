@@ -46,10 +46,6 @@ class base_widget(QWidget):
         
         #neccessary stuff
         img_path = path.join("modules", "basics", "cursors", "empty.gif");
-        x = QCursor(QBitmap(img_path), QBitmap(img_path),0, 0);#nmm
-        self.setCursor(x);#nmm
-        self.ok_pos = QPoint(0,0);#nmm
-        self.setMouseTracking(True);#nmm
         
         self.rubber = SRubberBand(self);
         self.selection = selection_manager();
@@ -119,8 +115,7 @@ class base_widget(QWidget):
                     self.reso_line.move_item_to(it, loc.x());
                 if it in self.gas_line.items:
                     self.gas_line.move_item_to(it, loc.x());
-        self.repaint();
-    
+        #~ self.repaint();
     #key events
     def keyPressEvent(self, e):
         if e.isAutoRepeat() == False and e.key() == Qt.Key_Shift:
@@ -134,9 +129,7 @@ class base_widget(QWidget):
         self.rubber.start(e);
         
     def mouseMoveEvent(self, e):
-        self.ok_pos = QCursor.pos();#nmm
         self.rubber.change(e);
-        self.repaint();#nmm
         
     def mouseReleaseEvent(self, e):
         sel = self.rubber.get_selection(self.min_objects, e);
@@ -145,20 +138,16 @@ class base_widget(QWidget):
         if not self.shiftPressed:
             self.selection.select_list(sel);
         
-        self.rubber.set_to_zero();
         self.repaint();
+        self.rubber.set_to_zero();
     
     #paint events
     def paintEvent(self, event):
         if self.selection:
-            self.gas_line.paint(self, self.get_area_from_item(self.selection[0], "gas"), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
+            #~ self.gas_line.paint(self, self.get_area_from_item(self.selection[0], "gas"), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
             self.reso_line.paint(self, self.get_area_from_item(self.selection[0], "min"));
+            print("painter: main if");
         else:
-            self.gas_line.paint(self, self.get_total_area("gas"), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
+            #~ self.gas_line.paint(self, self.get_total_area("gas"), area_color = ["lime", "yellow"], trafo = [0,402,1,1]);
             self.reso_line.paint(self, self.get_total_area("min"));
-            
-        paintCursor(self, self.mapFromGlobal(self.ok_pos));#nmm
-    
-    def leaveEvent(self, e):#nmm
-        self.ok_pos = QPoint(10000, 10000); #surely not on the screen :)
-        self.repaint();
+            print("painter: main else");

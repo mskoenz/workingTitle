@@ -9,6 +9,10 @@
 import sys
 from qt_import import *
 import copy;
+import math;
+
+def QPointS(size):
+    return QPoint(size.width(), size.height());
 
 class Button(QPushButton):
   
@@ -17,19 +21,23 @@ class Button(QPushButton):
         self.parent = parent;
         self.setCheckable(True);
         self.setFocusPolicy(Qt.NoFocus);
-        #~ self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum);
         self.last_click = QPoint(0,0);
         self.setMouseTracking(True);
-    def mouseMoveEvent(self, e):
-        self.parent.repaint();
         
+        self.lock = False;
+        
+    def mouseMoveEvent(self, e):
+        if self.lock:
+            return None;
         if e.buttons() != Qt.RightButton or not self.isChecked():
             self.parent.ok_pos = QCursor.pos();
             return None;
+            
         self.parent.move_selected_to(self, self.mapToParent(e.pos()), self.last_click);
         
     def mousePressEvent(self, e):
         self.last_click = e.pos();
+        
         if e.button() == Qt.LeftButton:
             self.parent.select_item(self);
             print("click");
@@ -37,47 +45,34 @@ class Button(QPushButton):
             self.parent.deselect_all();
             self.parent.select_item(self);
         if e.buttons() == Qt.RightButton and self.isChecked():
-            self.parent.restrict = QPolygon();
-            for it in [x for x in [self.parent.button1, self.parent.button2, self.parent.button3] if x not in self.parent.selection]:
-                size = QPoint(it.rect().width(), it.rect().height());
-                rect = QRect(it.pos(), it.pos()+size - QPoint(2,2));
-                self.parent.restrict = self.parent.restrict.united(rect);
+            
+            self.parent.multi_mark = [];
+            for mark in self.parent.selection:
+                for re in [x for x in self.parent.objects if x not in self.parent.selection]:
+                    rel_p = re.pos() + e.pos() + self.pos() - mark.pos();
+                    tar = QRect(rel_p - QPointS(mark.size())+QPoint(1,1), rel_p + QPointS(re.size())-QPoint(2,2));
+                    self.parent.multi_mark.append(tar);
+                    
     def paintEvent(self, e):
         QPushButton.paintEvent(self, e);
-        paintCursor(self, self.mapFromGlobal(self.parent.ok_pos));
         
-def map_to_grid(point, grid_size): #doesn't work in negatives!!
-    x = int(point.x()/grid_size)*grid_size;
-    y = int(point.y()/grid_size)*grid_size;
-    return QPoint(x, y);
-
 class Example(QWidget):
-  
+
     def __init__(self):
         QWidget.__init__(self);
         self.setWindowTitle("Click or Move");
         self.setGeometry(300, 300, 300, 300);
         self.setAcceptDrops(True);
         
-        x = QCursor(QBitmap("empty.gif"), 0, 0);
-        print(x.hotSpot());
-        self.setCursor(x);
+        self.objects = [];
         
+        for i in range(70):
+            self.objects.append(Button(str(i), self));
+            self.objects[-1].setGeometry((i%15)*19, int(i/15)*19, 20, 20);
         
-        self.button1 = Button('1', self);
-        self.button2 = Button('2', self);
-        self.button3 = Button('3', self);
-        self.button1.setGeometry(10,20,20,20);
-        self.button2.setGeometry(100,50,60,60);
-        self.button3.setGeometry(160,150,20,20);
+        self.multi_mark = [];
         
-        
-        
-        self.r1 = QPolygon(QRect(20, 20, 240, 240));
-        self.r2 = QPolygon(QRect(10, 10, 100, 100));
-        self.restrict = self.r1.united(self.r2).subtracted(self.button1.rect());
-        self.mark = QPolygon();
-        self.setMouseTracking(True);
+        #~ self.setMouseTracking(True);
         
         self.selection = [];
         self.ok_pos = QPoint(0,0);
@@ -92,7 +87,7 @@ class Example(QWidget):
         if  e.isAutoRepeat() == False and e.key() == Qt.Key_Shift:
             self.keydown = False;
             self.setWindowTitle("shift not pressed");
-            
+    
     def select_item(self, item):
         if self.keydown == True:
             if item.isChecked == True:
@@ -110,69 +105,67 @@ class Example(QWidget):
         for it in self.selection:
             it.setChecked(False);
             self.selection = [];
-    
-    #~ def outside(self, pos, size):
-        #~ tl = pos;
-        #~ bl = tl + QPoint(0, size.height());
-        #~ tr = tl + QPoint(size.width(), 0);
-        #~ br = tr + QPoint(0, size.height());
-        #~ print(tl,bl,tr,br);
-        #~ if not self.restrict.containsPoint(tl, Qt.OddEvenFill) or\
-           #~ not self.restrict.containsPoint(bl, Qt.OddEvenFill) or\
-           #~ not self.restrict.containsPoint(tr, Qt.OddEvenFill) or\
-           #~ not self.restrict.containsPoint(br, Qt.OddEvenFill):
-            #~ return True;
-        #~ return False;
-    
-    def move_selected_to(self, item, pos, rel):
         
-        p = item.pos();
+    def move_selected_to(self, item, pos, rel):
+        old = item.pos();
+        goto = pos - rel;
+        
+        dif = QPoint(0, 0);
+        
+        fixed_cursor = pos;
+        
+        for re in self.multi_mark:
+            if re.contains(fixed_cursor):
+                p1 = re.topLeft()-fixed_cursor;
+                p2 = re.bottomRight()-fixed_cursor + QPoint(1,1);
+                dx = p1.x() if -p1.x() < p2.x() else p2.x();
+                dy = p1.y() if -p1.y() < p2.y() else p2.y();
+                if abs(dx) < abs(dy):
+                    if abs(dx) > abs(dif.x()):
+                        dif.setX(dx);
+                elif abs(dx) > abs(dy):
+                    if abs(dy) > abs(dif.y()):
+                        dif.setY(dy);
+                #~ else:
+                    #~ if abs(dx) > abs(dif.x()):
+                        #~ dif.setX(dx);
+                    #~ if abs(dy) > abs(dif.y()):
+                        #~ dif.setY(dy);
 
-        pos = pos-rel;
-        self.mark = QPolygon();
-        for it in self.selection:
-            size = QPoint(it.rect().size().width(), it.rect().size().height());
-            rect = QRect(pos-p+it.pos(), pos-p+it.pos()+size-QPoint(2,2));
-            self.mark = self.mark.united(QPolygon(rect));
-            print(len(self.restrict.intersected(self.mark)));
-        if len(self.restrict.intersected(self.mark)) > 3:
-            pos = p;
-            self.ok_pos = self.mapToGlobal(pos + rel);
-            QCursor.setPos(self.ok_pos);
-        else:
-            if pos != p:
-                self.ok_pos = QCursor.pos();
-        for it in self.selection:
-            rel = p -it.pos();
-            it.move(pos - rel);
-        self.repaint();
+        if dif != QPoint(0,0):
+            goto += dif;
+            self.ok_pos = self.mapToGlobal(goto + rel);
             
+            item.lock = True;
+            QCursor.setPos(self.ok_pos);
+            item.lock = False;
+            for it in self.selection:
+                rel = old -it.pos();
+                it.move(goto - rel);
+        else:
+            self.ok_pos = QCursor.pos();
+            for it in self.selection:
+                rel = old -it.pos();
+                it.move(goto - rel);
+        self.repaint();
+    
     def mouseMoveEvent(self, e):
         self.ok_pos = QCursor.pos();
-        self.repaint();
-    
+
     def mousePressEvent(self, e):
         self.deselect_all();
 
     def paintEvent(self, e):
+        
+        pass;
         painter = QPainter();
         painter.begin(self);
-        painter.drawPolygon(self.restrict);
-        #~ painter.drawPolygon(self.mark);
-        painter.drawPolygon(self.restrict.intersected(self.mark));
+        
+        for rec in self.multi_mark:
+            painter.drawRect(rec);
+        
         painter.end();
-        paintCursor(self, self.mapFromGlobal(self.ok_pos));
         
-    def leaveEvent(self, e):
-        self.ok_pos = QPoint(10000, 10000); #surely not on the screen
-        self.repaint();
-        
-def paintCursor(self, pos):
-    painter = QPainter();
-    painter.begin(self);
-    painter.drawPixmap(pos, QPixmap("cursor_green.png"));
-    painter.end();
-    
 def main():
     app = QApplication(sys.argv);
     ex = Example();

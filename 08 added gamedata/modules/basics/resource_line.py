@@ -218,6 +218,7 @@ class resource_line:
         painter.drawPolyline( QPolygon( self.get_points(trafo) ) );
         
         painter.end();
+        print("done");
     
     def get_area_to(self, x_in):
         area = 0;
